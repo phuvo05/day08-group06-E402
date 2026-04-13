@@ -1,8 +1,11 @@
 # Báo Cáo Cá Nhân — Lab Day 08: RAG Pipeline
 
 **Họ và tên:** Đào Hồng Sơn
+
 **Vai trò trong nhóm:** Documentation Owner
+
 **Ngày nộp:** 13/04/2026
+
 **Độ dài yêu cầu:** 500–800 từ
 
 ---
