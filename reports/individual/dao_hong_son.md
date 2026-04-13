@@ -16,7 +16,7 @@ Tôi làm Documentation Owner nên không trực tiếp viết hàm retrieve hay
 
 Sprint 2–3, tôi đối chiếu `BASELINE_CONFIG` và `VARIANT_CONFIG` trong `eval.py` để chốt lại với team ở file và sửa ngay trước khi commit ở `tuning-log.md`: baseline = `dense, top_k_search=10, top_k_select=3, rerank=False`, variant = `hybrid + rerank=True`. Đây là chỗ đầu tiên tôi suýt viết sai vì có lúc tài liệu chỉ thấy phần rerank, dễ tưởng nhóm chỉ đổi một biến.
 
-Sprint 4, tôi viết script `run_grading.py` theo mẫu trong SCORING.md để chạy `docs/grading_questions_new.json` qua pipeline variant, ghi ra `logs/grading_run_new.json` đúng schema bắt buộc (id, question, answer, sources, chunks_retrieved, retrieval_mode, timestamp), thêm `use_rerank` theo gợi ý FAQ. Sau đó tôi tự chấm 10 câu theo `grading_criteria` và đối chiếu với expected_answer để nộp.
+Sprint 4, tôi đối chiếu `grading_criteria` và  expected_answer để đánh giá.
 
 ---
 
