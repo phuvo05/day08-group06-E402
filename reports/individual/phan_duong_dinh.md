@@ -9,34 +9,34 @@
 
 ## 1. Tôi đã làm gì trong lab này?
 
-Tôi phụ trách Sprint 3 — tuning retrieval strategy. Sau khi phân tích corpus, tôi chọn variant **Rerank** vì dense search trả về nhiều chunk có score gần nhau (~0.72–0.78), khó phân biệt chunk nào thực sự liên quan nhất. Tôi implement `rerank()` dùng cross-encoder `cross-encoder/ms-marco-MiniLM-L-6-v2` từ Sentence Transformers: lấy top-10 từ dense search, cho cross-encoder score lại từng cặp (query, chunk), rồi chỉ giữ top-3 để đưa vào LLM. Tôi cũng chạy `compare_retrieval_strategies()` để so sánh baseline dense vs rerank trên toàn bộ test questions, và ghi kết quả vào `docs/tuning-log.md`. Công việc của tôi phụ thuộc vào `retrieve_dense()` của Phú và kết quả được Khang dùng để chạy scorecard.
+Trong Sprint 3, tôi nhận trách nhiệm tối ưu hóa chiến lược truy xuất thông tin. Sau khi kiểm tra dữ liệu kho, tôi nhận thấy phương pháp tìm kiếm vector mật độ cao cho điểm số rất gần nhau (khoảng 0.72–0.78) giữa các đoạn văn bản, làm khó xác định đoạn nào phù hợp nhất. Để giải quyết vấn đề này, tôi xây dựng mô-đun `rerank()` sử dụng mô hình cross-encoder `cross-encoder/ms-marco-MiniLM-L-6-v2` từ thư viện Sentence Transformers. Quy trình hoạt động gồm: lấy 10 kết quả hàng đầu từ tìm kiếm vector, ghi điểm lại từng cặp (truy vấn, đoạn text) qua cross-encoder, và chỉ giữ 3 kết quả tốt nhất để cung cấp cho mô hình ngôn ngữ. Tôi cũng thực hiện so sánh toàn diện giữa baseline và phương pháp rerank trên tất cả câu hỏi kiểm thử thông qua `compare_retrieval_strategies()`, với kết quả được lưu trong `docs/tuning-log.md`. Công việc này dựa trên hàm `retrieve_dense()` mà Phú phát triển, và Khang sử dụng kết quả của tôi để đánh giá hiệu năng tổng thể.
 
 ---
 
 ## 2. Điều tôi hiểu rõ hơn sau lab này
 
-Tôi hiểu rõ hơn sự khác biệt giữa **bi-encoder** (dùng trong dense retrieval) và **cross-encoder** (dùng trong rerank). Bi-encoder encode query và document độc lập nên nhanh nhưng kém chính xác hơn. Cross-encoder nhìn cả cặp (query, document) cùng lúc nên chính xác hơn nhiều nhưng không thể dùng để search toàn bộ corpus vì quá chậm. Việc kết hợp hai loại — dùng bi-encoder để lọc nhanh, cross-encoder để rerank — là pattern thực tế được dùng trong production search system.
+Trải qua lab này, tôi nắm rõ hơn về sự khác biệt cơ bản giữa hai kiến trúc mô hình. Mô hình bi-encoder (dùng trong tìm kiếm vector) xử lý query và tài liệu riêng biệt, cho phép tìm kiếm nhanh nhưng với độ chính xác hạn chế. Ngược lại, cross-encoder phân tích cả cặp query-tài liệu đồng thời, cung cấp độ chính xác cao hơn đáng kể nhưng không khả thi cho tìm kiếm toàn bộ kho dữ liệu do độ trễ cao. Kết hợp hai phương pháp — dùng bi-encoder lọc nhanh, sau đó dùng cross-encoder để xếp hạng lại — là một mẫu thực tiễn được áp dụng rộng rãi trong các hệ thống tìm kiếm sản xuất.
 
 ---
 
 ## 3. Điều tôi ngạc nhiên hoặc gặp khó khăn
 
-Khó khăn là cross-encoder mất ~1.2 giây để rerank 10 chunk trên CPU — chậm hơn tôi kỳ vọng. Với 10 test questions, tổng thời gian tăng thêm ~12 giây so với baseline. Đây là trade-off thực tế giữa accuracy và latency.
+Thách thức chính là hiệu năng xử lý: cross-encoder mất khoảng 1.2 giây để xếp hạng 10 đoạn văn trên bộ xử lý thông thường — chậm hơn dự kiến ban đầu. Cộng dồn lên 10 câu hỏi kiểm thử, thời gian xử lý tăng thêm khoảng 12 giây so với phương pháp cơ bản. Đây là sự cân bằng thiết thực giữa tính chính xác và tốc độ phản hồi.
 
-Điều ngạc nhiên là rerank cải thiện rõ nhất ở các câu hỏi có từ khóa kỹ thuật như "SLA P1", "Level 3 access" — những câu mà dense search trả về nhiều chunk "gần đúng" nhưng không phải chunk chứa con số cụ thể. Cross-encoder phân biệt được chunk nào thực sự trả lời câu hỏi, không chỉ liên quan về chủ đề.
+Điểm thú vị là cải tiến hiệu suất xuất hiện rõ rệt nhất ở những truy vấn chứa thuật ngữ kỹ thuật chuyên biệt như "SLA P1" hay "Level 3 access". Với những truy vấn này, tìm kiếm vector trả về nhiều đoạn "gần đúng" nhưng không phải đoạn chứa thông tin chính xác. Cross-encoder chứng minh khả năng phân biệt được đoạn nào thực sự trả lời câu hỏi, thay vì chỉ liên quan về chủ đề nói chung.
 
 ---
 
-## 4. Phân tích một câu hỏi trong scorecard
+## 4. Phân tích một câu hỏi trong bảng đánh giá
 
 **Câu hỏi:** "SLA xử lý ticket P1 là bao lâu?"
 
-Baseline dense search trả về chunk từ `sla_p1_2026.txt` ở rank 3 (score 0.74), trong khi rank 1-2 là các chunk từ `it_helpdesk_faq.txt` nói về SLA chung chung. LLM dùng context rank 1-2 và trả lời "trong vòng 24 giờ" — sai, vì SLA P1 thực tế là 4 giờ.
+Khi dùng phương pháp cơ bản, kết quả từ `sla_p1_2026.txt` chỉ đứng ở vị trí 3 (điểm số 0.74), trong khi 2 vị trí hàng đầu là các đoạn từ `it_helpdesk_faq.txt` chỉ nói chung chung về SLA. Mô hình ngôn ngữ sử dụng context từ 2 kết quả đầu và đưa ra câu trả lời "trong vòng 24 giờ" — sai, vì SLA P1 thực tế là 4 giờ.
 
-Sau rerank, chunk từ `sla_p1_2026.txt` được đẩy lên rank 1 với cross-encoder score 0.91. LLM trả lời đúng "4 giờ làm việc" kèm citation. Đây là case study rõ nhất cho thấy rerank giải quyết được vấn đề dense search bị nhiễu bởi semantic similarity chung chung.
+Sau khi áp dụng xếp hạng lại, đoạn từ `sla_p1_2026.txt` được nâng lên vị trí 1 với điểm cross-encoder là 0.91. Mô hình ngôn ngữ giờ đưa ra câu trả lời chính xác: "4 giờ làm việc" có kèm trích dẫn nguồn. Trường hợp này minh họa rõ ràng cách xếp hạng lại khắc phục được hạn chế của tìm kiếm vector khi bị ảnh hưởng bởi các đoạn văn liên quan về mặt ngữ nghĩa nhưng không phải câu trả lời chính xác.
 
 ---
 
-## 5. Nếu có thêm thời gian, tôi sẽ làm gì?
+## 5. Hướng phát triển nếu có thêm thời gian
 
-Tôi sẽ thử **hybrid retrieval** kết hợp BM25 + dense + rerank vì eval cho thấy còn 2 câu hỏi có mã lỗi (`ERR-403-AUTH`, `ERR-500-DB`) mà cả dense lẫn rerank đều không retrieve được đúng — những câu này cần exact keyword match mà BM25 xử lý tốt hơn.
+Nếu có nhiều thời gian hơn, tôi muốn thử nghiệm **kết hợp nhiều phương pháp** bao gồm BM25 + tìm kiếm vector + xếp hạng lại. Đánh giá hiện tại cho thấy 2 câu hỏi chứa mã lỗi (`ERR-403-AUTH`, `ERR-500-DB`) mà cả tìm kiếm vector lẫn xếp hạng lại đều không tìm được đúng kết quả. Những truy vấn này cần khớp từ khóa chính xác, là điểm mạnh của phương pháp BM25.
