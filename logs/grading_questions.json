@@ -1,0 +1,101 @@
+[
+  {
+    "id": "gq01",
+    "question": "SLA xử lý ticket P1 đã thay đổi như thế nào so với phiên bản trước?",
+    "grading_criteria": [
+      "Đề cập ticket P1 có SLA resolution 4 giờ",
+      "Đề cập phản hồi ban đầu 15 phút"
+    ],
+    "difficulty": "hard",
+    "category": "SLA"
+  },
+  {
+    "id": "gq02",
+    "question": "Nhân viên remote kết nối VPN cần tuân thủ những giới hạn thiết bị nào?",
+    "grading_criteria": [
+      "Đề cập giới hạn thiết bị cụ thể",
+      "Đề cập VPN (Cisco AnyConnect)"
+    ],
+    "difficulty": "medium",
+    "category": "IT"
+  },
+  {
+    "id": "gq03",
+    "question": "Sản phẩm đã kích hoạt trong chương trình Flash Sale có được hoàn tiền không?",
+    "grading_criteria": [
+      "Đề cập đã kích hoạt KHÔNG được hoàn tiền",
+      "Đề cập Flash Sale là ngoại lệ không hoàn tiền"
+    ],
+    "difficulty": "medium",
+    "category": "Refund"
+  },
+  {
+    "id": "gq04",
+    "question": "Store credit được hoàn bao nhiêu phần trăm so với số tiền hoàn?",
+    "grading_criteria": [
+      "Đề cập store credit = 110% giá trị hoàn tiền"
+    ],
+    "difficulty": "easy",
+    "category": "Refund"
+  },
+  {
+    "id": "gq05",
+    "question": "Contractor cần điều kiện gì để được cấp Admin Access?",
+    "grading_criteria": [
+      "Đề cập contractor cần phê duyệt từ IT Security",
+      "Đề cập Level 3 hoặc Admin Access cần nhiều phê duyệt"
+    ],
+    "difficulty": "medium",
+    "category": "Access Control"
+  },
+  {
+    "id": "gq06",
+    "question": "Nếu có sự cố P1 xảy ra lúc 2 giờ sáng, quy trình cấp quyền tạm thời được xử lý như thế nào?",
+    "grading_criteria": [
+      "Đề cập escalation tự động trong P1",
+      "Đề cập quyền tạm thời trong sự cố P1"
+    ],
+    "difficulty": "hard",
+    "category": "Cross-Doc"
+  },
+  {
+    "id": "gq07",
+    "question": "Mức phạt khi nhân viên vi phạm SLA P1 là bao nhiêu?",
+    "grading_criteria": [
+      "Tài liệu KHÔNG có thông tin về mức phạt",
+      "Pipeline abstain hoặc nói rõ không tìm thấy thông tin"
+    ],
+    "difficulty": "hard",
+    "category": "Abstain"
+  },
+  {
+    "id": "gq08",
+    "question": "Nếu nhân viên báo nghỉ phép 3 ngày liên tiếp, có được tính là nghỉ ốm không?",
+    "grading_criteria": [
+      "Nghỉ phép 3 ngày KHÔNG phải nghỉ ốm",
+      "Nghỉ phép theo quy trình riêng, nghỉ ốm là hình thức khác"
+    ],
+    "difficulty": "medium",
+    "category": "HR"
+  },
+  {
+    "id": "gq09",
+    "question": "Mật khẩu hệ thống phải đổi sau bao nhiêu ngày và được nhắc trước mấy ngày?",
+    "grading_criteria": [
+      "Đề cập số ngày phải đổi mật khẩu",
+      "Đề cập số ngày được nhắc trước"
+    ],
+    "difficulty": "medium",
+    "category": "IT"
+  },
+  {
+    "id": "gq10",
+    "question": "Chính sách hoàn tiền phiên bản 4 có áp dụng cho đơn hàng đặt trước ngày 01/02/2026 không?",
+    "grading_criteria": [
+      "Đáp ứng yêu cầu KHÔNG",
+      "Tài liệu chính sách ghi rõ chỉ áp dụng cho đơn hàng từ 01/02/2026"
+    ],
+    "difficulty": "easy",
+    "category": "Refund"
+  }
+]
