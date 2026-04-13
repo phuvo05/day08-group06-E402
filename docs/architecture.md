@@ -10,9 +10,9 @@
     ↓
 [index.py: Preprocess → Chunk → Embed → Store]
     ↓
-[ChromaDB Vector Store]
+[ChromaDB Vector Store + BM25 Inverted Index]
     ↓
-[rag_answer.py: Query → Retrieve → Rerank → Generate]
+[rag_answer.py: Query → Hybrid Retrieve → Fuse → Generate]
     ↓
 [Grounded Answer + Citation]
 ```
@@ -44,7 +44,8 @@ Nhóm xây dựng RAG pipeline cho internal helpdesk — cho phép nhân viên h
 ### Embedding model
 - **Model**: paraphrase-multilingual-MiniLM-L12-v2 (sentence-transformers, local)
 - **Vector store**: ChromaDB (PersistentClient)
-- **Similarity metric**: Cosine
+- **Sparse index**: BM25 inverted index (token-based)
+- **Similarity metric**: Cosine (dense) + BM25 score (sparse)
 
 ---
 
@@ -61,14 +62,16 @@ Nhóm xây dựng RAG pipeline cho internal helpdesk — cho phép nhân viên h
 ### Variant (Sprint 3)
 | Tham số | Giá trị | Thay đổi so với baseline |
 |---------|---------|------------------------|
-| Strategy | Dense (embedding similarity) | Không đổi |
-| Top-k search | 10 | Không đổi |
+| Strategy | Hybrid (Dense + BM25) | Đổi từ Dense-only |
+| Dense top-k | 10 | Giữ như baseline |
+| Sparse top-k | 10 | Thêm mới |
+| Fusion | Weighted score fusion (0.7 dense + 0.3 sparse) | Thêm mới |
 | Top-k select | 3 | Không đổi |
-| Rerank | cross-encoder/ms-marco-MiniLM-L-6-v2 | Thêm mới |
+| Rerank | Không | Không đổi |
 | Query transform | Không | Không đổi |
 
 **Lý do chọn variant này:**
-Baseline context recall đã đạt 5.00/5 — retrieval lấy đúng document. Vấn đề là ranking: dense search cho score gần nhau (0.72–0.78), chunk FAQ chung chung được rank cao hơn chunk chứa con số cụ thể (q01: SLA P1). Cross-encoder rerank nhìn cả cặp (query, chunk) nên phân biệt được "liên quan về chủ đề" vs "trả lời đúng câu hỏi". Chọn rerank thay vì hybrid vì chỉ muốn đổi một biến.
+Dense search mạnh ở semantic match nhưng đôi khi bỏ sót chunk có keyword quan trọng (ví dụ mã SLA, mốc thời gian, điều khoản có số liệu cụ thể). BM25 bổ sung tín hiệu lexical để kéo lên các chunk chứa từ khóa trọng yếu. Hybrid giúp tăng độ ổn định retrieval trên cả câu hỏi diễn đạt tự nhiên và câu hỏi có từ khóa exact-match, trong khi vẫn giữ pipeline đủ đơn giản để debug.
 
 ---
 
@@ -110,6 +113,7 @@ Answer:
 | Index lỗi | Retrieve về docs cũ / sai version | `inspect_metadata_coverage()` trong index.py |
 | Chunking tệ | Chunk cắt giữa điều khoản | `list_chunks()` và đọc text preview |
 | Retrieval lỗi | Không tìm được expected source | `score_context_recall()` trong eval.py |
+| Hybrid fuse lệch | BM25 lấn át semantic hoặc ngược lại | So sánh distribution score dense vs sparse theo query |
 | Generation lỗi | Answer không grounded / bịa | `score_faithfulness()` trong eval.py |
 | Token overload | Context quá dài → lost in the middle | Kiểm tra độ dài context_block |
 
@@ -122,14 +126,16 @@ Answer:
 ```mermaid
 graph LR
     A[User Query] --> B[Query Embedding]
-    B --> C[ChromaDB Vector Search]
-    C --> D[Top-10 Candidates]
-    D --> E{Rerank?}
-    E -->|Yes| F[Cross-Encoder]
-    E -->|No| G[Top-3 Select]
-    F --> G
-    G --> H[Build Context Block]
-    H --> I[Grounded Prompt]
-    I --> J[LLM]
-    J --> K[Answer + Citation]
+    A --> C[Keyword Query]
+    B --> D[ChromaDB Dense Search]
+    C --> E[BM25 Sparse Search]
+    D --> F[Top Dense Candidates]
+    E --> G[Top Sparse Candidates]
+    F --> H[Score Fusion]
+    G --> H
+    H --> I[Top-3 Select]
+    I --> J[Build Context Block]
+    J --> K[Grounded Prompt]
+    K --> L[LLM]
+    L --> M[Answer + Citation]
 ```
