@@ -376,7 +376,16 @@ def get_embedding(text: str) -> List[float]:
 
 def build_index(docs_dir: Path = DOCS_DIR, db_dir: Path = CHROMA_DB_DIR) -> None:
     """
-    Pipeline hoàn chỉnh: đọc docs → preprocess → chunk → embed → store.
+    Thực thi toàn bộ pipeline xây dựng vector index cho hệ thống RAG:
+    1. Thu thập dữ liệu: Đọc các tài liệu text (.txt) từ thư mục `docs_dir`.
+    2. Tiền xử lý (preprocess): Trích xuất metadata (source, department, effective_date,...) và làm sạch nội dung.
+    3. Phân chia (chunking): Chia văn bản thành các đoạn (chunk) nhỏ theo cấu trúc tự nhiên để LLM dễ xử lý, đính kèm metadata liên quan.
+    4. Nhúng vector (embedding): Biến đổi từng chunk thành vector embeddings dựa trên OpenAI API hoặc mô hình sentence-transformers local (`EMBEDDING_PROVIDER`).
+    5. Lưu trữ (store): Lưu toàn bộ ID, vector, chunk và metadata bằng phương thức batch upsert vào cơ sở dữ liệu vector ChromaDB định tuyến tại `db_dir`.
+
+    Args:
+        docs_dir (Path): Thư mục chứa các tài liệu văn bản để index. Mặc định `DOCS_DIR` (data/docs/).
+        db_dir (Path): Thư mục lưu dữ liệu cục bộ của ChromaDB. Mặc định `CHROMA_DB_DIR` (chroma_db/).
     """
     import chromadb
 

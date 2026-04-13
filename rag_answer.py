@@ -321,11 +321,18 @@ Answer:"""
 
 def call_llm(prompt: str) -> str:
     """
-    Gọi LLM để sinh câu trả lời.
+    Tiếp nhận chuỗi text hoặc prompt đầu vào và gọi mô hình ngôn ngữ (LLM) để sinh ra câu trả lời dựa trên nội dung prompt.
+    Hàm này cung cấp chức năng gọi API từ nhiều nhà cung cấp thông qua biến môi trường `LLM_PROVIDER`:
+    1. Đầu tiên, đọc biến môi trường để xác định loại dịch vụ (Mặc định `LLM_PROVIDER=openai`).
+    2. Cấu hình xác thực (Tải từ api key, như `OPENAI_API_KEY` của OpenAI).
+    3. Thiết lập payload gồm prompt và gọi mô hình thích hợp (Ví dụ: `gpt-3.5-turbo` nếu dùng openai).
+    4. Xử lý phản hồi từ server, trích xuất văn bản trả về kết quả.
 
-    Ưu tiên theo thứ tự:
-    1. LLM_PROVIDER=openai  → dùng OpenAI API
-    2. LLM_PROVIDER=gemini  → dùng Google Gemini
+    Args:
+        prompt (str): Câu lệnh đầu vào để gửi tới LLM. Dành cho RAG, nội dung này thường chứa instruction, context và user query đã được format đầy đủ.
+
+    Returns:
+        str: Nội dung câu trả lời bằng văn bản được sinh ra bởi LLM.
     """
     provider = os.getenv("LLM_PROVIDER", "openai").lower().strip()
 
