@@ -1,0 +1,130 @@
+[
+  {
+    "id": "gq01",
+    "question": "SLA xử lý ticket P1 đã thay đổi như thế nào so với phiên bản trước?",
+    "answer": "SLA xử lý ticket P1 đã thay đổi từ 6 giờ xuống 4 giờ cho quy trình khắc phục (resolution) trong phiên bản cập nhật v2026.1 [2].",
+    "sources": [
+      "support/sla-p1-2026.pdf",
+      "policy/refund-v4.pdf"
+    ],
+    "chunks_retrieved": 3,
+    "retrieval_mode": "hybrid",
+    "use_rerank": true,
+    "timestamp": "2026-04-13T17:03:21.366856"
+  },
+  {
+    "id": "gq02",
+    "question": "Nhân viên remote kết nối VPN cần tuân thủ những giới hạn thiết bị nào?",
+    "answer": "Nhân viên remote kết nối VPN cần tuân thủ giới hạn là mỗi tài khoản chỉ được kết nối trên tối đa 2 thiết bị cùng lúc [2].",
+    "sources": [
+      "support/helpdesk-faq.md",
+      "hr/leave-policy-2026.pdf",
+      "it/access-control-sop.md"
+    ],
+    "chunks_retrieved": 3,
+    "retrieval_mode": "hybrid",
+    "use_rerank": true,
+    "timestamp": "2026-04-13T17:03:24.383167"
+  },
+  {
+    "id": "gq03",
+    "question": "Sản phẩm đã kích hoạt trong chương trình Flash Sale có được hoàn tiền không?",
+    "answer": "Sản phẩm đã kích hoạt trong chương trình Flash Sale không được hoàn tiền [1].",
+    "sources": [
+      "policy/refund-v4.pdf"
+    ],
+    "chunks_retrieved": 3,
+    "retrieval_mode": "hybrid",
+    "use_rerank": true,
+    "timestamp": "2026-04-13T17:03:27.672832"
+  },
+  {
+    "id": "gq04",
+    "question": "Store credit được hoàn bao nhiêu phần trăm so với số tiền hoàn?",
+    "answer": "Store credit được hoàn 110% so với số tiền hoàn [1].",
+    "sources": [
+      "policy/refund-v4.pdf"
+    ],
+    "chunks_retrieved": 3,
+    "retrieval_mode": "hybrid",
+    "use_rerank": true,
+    "timestamp": "2026-04-13T17:03:31.259848"
+  },
+  {
+    "id": "gq05",
+    "question": "Contractor cần điều kiện gì để được cấp Admin Access?",
+    "answer": "Để được cấp Admin Access, Contractor cần thực hiện các bước sau: \n\n1. Tạo Access Request ticket trên Jira (project IT-ACCESS).\n2. Yêu cầu phải được phê duyệt bởi Line Manager trong 1 ngày làm việc.\n3. IT Admin sẽ kiểm tra compliance và cấp quyền.\n4. IT Security sẽ thực hiện review với Level 3 và Level 4.\n5. Nhân viên sẽ nhận thông báo qua email khi quyền được cấp [1].",
+    "sources": [
+      "support/helpdesk-faq.md",
+      "it/access-control-sop.md"
+    ],
+    "chunks_retrieved": 3,
+    "retrieval_mode": "hybrid",
+    "use_rerank": true,
+    "timestamp": "2026-04-13T17:03:35.624977"
+  },
+  {
+    "id": "gq06",
+    "question": "Nếu có sự cố P1 xảy ra lúc 2 giờ sáng, quy trình cấp quyền tạm thời được xử lý như thế nào?",
+    "answer": "Nếu có sự cố P1 xảy ra lúc 2 giờ sáng, quy trình cấp quyền tạm thời sẽ được xử lý như sau: On-call IT Admin có thể cấp quyền tạm thời (tối đa 24 giờ) sau khi được Tech Lead phê duyệt bằng lời. Sau 24 giờ, phải có ticket chính thức hoặc quyền sẽ bị thu hồi tự động. Tất cả quyền tạm thời phải được ghi log vào hệ thống Security Audit [1].",
+    "sources": [
+      "it/access-control-sop.md",
+      "support/sla-p1-2026.pdf"
+    ],
+    "chunks_retrieved": 3,
+    "retrieval_mode": "hybrid",
+    "use_rerank": true,
+    "timestamp": "2026-04-13T17:03:39.232669"
+  },
+  {
+    "id": "gq07",
+    "question": "Mức phạt khi nhân viên vi phạm SLA P1 là bao nhiêu?",
+    "answer": "Mức phạt khi nhân viên vi phạm SLA P1 không được đề cập trong tài liệu. Tôi không biết thông tin này.",
+    "sources": [
+      "support/sla-p1-2026.pdf"
+    ],
+    "chunks_retrieved": 3,
+    "retrieval_mode": "hybrid",
+    "use_rerank": true,
+    "timestamp": "2026-04-13T17:03:42.159469"
+  },
+  {
+    "id": "gq08",
+    "question": "Nếu nhân viên báo nghỉ phép 3 ngày liên tiếp, có được tính là nghỉ ốm không?",
+    "answer": "Nếu nhân viên nghỉ phép 3 ngày liên tiếp, để được tính là nghỉ ốm, cần có giấy tờ y tế từ bệnh viện [2].",
+    "sources": [
+      "support/helpdesk-faq.md",
+      "hr/leave-policy-2026.pdf"
+    ],
+    "chunks_retrieved": 3,
+    "retrieval_mode": "hybrid",
+    "use_rerank": true,
+    "timestamp": "2026-04-13T17:03:45.519315"
+  },
+  {
+    "id": "gq09",
+    "question": "Mật khẩu hệ thống phải đổi sau bao nhiêu ngày và được nhắc trước mấy ngày?",
+    "answer": "Mật khẩu phải được thay đổi mỗi 90 ngày và hệ thống sẽ nhắc nhở 7 ngày trước khi hết hạn [1].",
+    "sources": [
+      "support/helpdesk-faq.md",
+      "it/access-control-sop.md",
+      "support/sla-p1-2026.pdf"
+    ],
+    "chunks_retrieved": 3,
+    "retrieval_mode": "hybrid",
+    "use_rerank": true,
+    "timestamp": "2026-04-13T17:03:49.029406"
+  },
+  {
+    "id": "gq10",
+    "question": "Chính sách hoàn tiền phiên bản 4 có áp dụng cho đơn hàng đặt trước ngày 01/02/2026 không?",
+    "answer": "Chính sách hoàn tiền phiên bản 4 không áp dụng cho đơn hàng đặt trước ngày 01/02/2026. Các đơn hàng đó sẽ áp dụng theo chính sách hoàn tiền phiên bản 3 [1].",
+    "sources": [
+      "policy/refund-v4.pdf"
+    ],
+    "chunks_retrieved": 3,
+    "retrieval_mode": "hybrid",
+    "use_rerank": true,
+    "timestamp": "2026-04-13T17:03:52.453732"
+  }
+]
