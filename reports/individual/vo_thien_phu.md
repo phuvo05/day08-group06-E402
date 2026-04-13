@@ -1,44 +1,50 @@
 # Báo Cáo Cá Nhân — Lab Day 08: RAG Pipeline
 
-**Họ và tên:** Võ Thiên Phú  
-**Vai trò trong nhóm:** Retrieval Owner (Indexing)  
-**Ngày nộp:** 13/04/2026  
-**Độ dài yêu cầu:** 500–800 từ
+| | |
+|---|---|
+| **Họ và tên** | Võ Thiên Phú |
+| **Vai trò trong nhóm** | Retrieval Owner (Indexing) |
+| **Ngày nộp** | 13/04/2026 |
+| **Độ dài yêu cầu** | 500–800 từ |
 
 ---
 
 ## 1. Tôi đã làm gì trong lab này?
 
-Tôi phụ trách toàn bộ phần indexing pipeline ở Sprint 1 và retrieval cơ bản ở Sprint 2. Cụ thể, tôi implement phần TODO trong `build_index()`: load từng file trong `data/docs/`, chunk theo paragraph với overlap 50 token, gắn metadata `source`, `section`, `effective_date` cho mỗi chunk, rồi embed và upsert vào ChromaDB. Sau đó tôi dùng `list_chunks()` để kiểm tra xem chunk có bị cắt giữa điều khoản không. Ở Sprint 2, tôi implement `retrieve_dense()` — nhận query string, embed bằng hàm của Quân, rồi query ChromaDB lấy top-k chunk kèm score. Phần này là đầu vào trực tiếp cho `call_llm()` của Quân và variant của Định.
+Trong lab lần này, tôi đảm nhận toàn bộ phần indexing pipeline ở Sprint 1 và xây dựng retrieval cơ bản ở Sprint 2. Nhiệm vụ chính của tôi là hoàn thiện phần TODO trong hàm `build_index()`: đọc lần lượt các file trong thư mục `data/docs/`, chia nhỏ nội dung theo ranh giới đoạn văn với overlap 50 token, đính kèm metadata gồm `source`, `section` và `effective_date` vào từng chunk, sau đó thực hiện embed và upsert vào ChromaDB.
+
+Để kiểm tra chất lượng, tôi dùng `list_chunks()` nhằm xác nhận rằng không có điều khoản nào bị cắt vụn. Sang Sprint 2, tôi tiếp tục xây dựng hàm `retrieve_dense()` — nhận vào một chuỗi query, embed thông qua hàm của Quân, rồi truy vấn ChromaDB để lấy top-k chunk có điểm cao nhất. Kết quả đầu ra của bước này được dùng trực tiếp trong `call_llm()` của Quân và các variant do Định phụ trách.
 
 ---
 
 ## 2. Điều tôi hiểu rõ hơn sau lab này
 
-Tôi hiểu rõ hơn về tầm quan trọng của **chunking strategy**. Ban đầu tôi chunk cứng theo 200 token, kết quả là nhiều điều khoản bị cắt đôi — ví dụ điều khoản hoàn tiền bị tách thành 2 chunk khác collection, khiến retrieval chỉ lấy được một nửa thông tin. Sau khi chuyển sang chunk theo paragraph boundary, `list_chunks()` cho thấy các chunk hoàn chỉnh hơn và điểm context recall tăng rõ rệt.
+Lab này giúp tôi nhận ra tầm quan trọng thực sự của **chiến lược chunking**. Lúc đầu tôi chia chunk cứng theo 200 token — cách làm đơn giản nhưng dẫn đến hậu quả là nhiều điều khoản bị tách đôi ra hai collection khác nhau. Điển hình là điều khoản hoàn tiền chỉ được retrieve một nửa, khiến thông tin trả về không đầy đủ. Khi chuyển sang chia theo ranh giới đoạn văn, `list_chunks()` phản ánh rõ sự cải thiện — các chunk trọn vẹn hơn và điểm context recall tăng lên đáng kể.
 
-Ngoài ra tôi hiểu **metadata filtering** không chỉ để đẹp — khi Khang chạy scorecard, việc có `effective_date` trong metadata giúp phân biệt được policy cũ và mới, tránh trường hợp retrieve nhầm phiên bản lỗi thời.
+Bên cạnh đó, tôi hiểu thêm rằng **metadata filtering** không chỉ mang tính hình thức. Khi Khang chạy scorecard, trường `effective_date` trong metadata đóng vai trò then chốt trong việc phân biệt chính sách cũ và mới, ngăn hệ thống retrieve nhầm sang các phiên bản đã lỗi thời.
 
 ---
 
 ## 3. Điều tôi ngạc nhiên hoặc gặp khó khăn
 
-Khó khăn lớn nhất là xử lý file `it_helpdesk_faq.txt` — file này có format Q&A lẫn lộn, không có paragraph rõ ràng. Chunk theo paragraph boundary cho ra các chunk chỉ 1-2 dòng, quá ngắn để có context đủ. Phải viết thêm logic nhận diện pattern "Q:" và "A:" để ghép cặp Q&A thành một chunk.
+Thách thức lớn nhất đến từ file `it_helpdesk_faq.txt` với định dạng Q&A không có cấu trúc rõ ràng. Khi áp dụng chunking theo đoạn văn, kết quả cho ra các chunk chỉ vỏn vẹn 1–2 dòng — quá ngắn để mang đủ ngữ cảnh. Để xử lý, tôi phải bổ sung logic nhận diện pattern `"Q:"` và `"A:"` nhằm ghép cặp câu hỏi và câu trả lời vào chung một chunk.
 
-Điều ngạc nhiên là ChromaDB xử lý upsert rất nhanh — 5 file với ~150 chunk tổng cộng chỉ mất khoảng 4 giây kể cả thời gian embed. Tôi tưởng sẽ mất lâu hơn nhiều.
+Điều khiến tôi bất ngờ là ChromaDB xử lý upsert nhanh hơn kỳ vọng rất nhiều — toàn bộ 5 file với khoảng 150 chunk, tính cả thời gian embed, chỉ mất khoảng 4 giây. Tôi đã chuẩn bị tinh thần chờ lâu hơn nhiều.
 
 ---
 
 ## 4. Phân tích một câu hỏi trong scorecard
 
-**Câu hỏi:** "Khách hàng có thể yêu cầu hoàn tiền trong bao nhiêu ngày?"
+**Câu hỏi:** *"Khách hàng có thể yêu cầu hoàn tiền trong bao nhiêu ngày?"*
 
-Baseline trả lời "30 ngày" — đúng với `policy_refund_v4.txt`. Tuy nhiên điểm chỉ đạt 0.8/1.0 vì câu trả lời thiếu điều kiện "kể từ ngày nhận hàng" và "không áp dụng cho sản phẩm đã kích hoạt".
+Ở bản baseline, hệ thống trả lời "30 ngày" — hoàn toàn khớp với nội dung trong `policy_refund_v4.txt`. Tuy nhiên điểm chỉ dừng ở 0.8/1.0 vì câu trả lời bỏ sót hai điều kiện quan trọng: "kể từ ngày nhận hàng" và "không áp dụng cho sản phẩm đã kích hoạt".
 
-Lỗi nằm ở **chunking**: điều kiện này nằm ở paragraph tiếp theo, bị tách thành chunk riêng và không được retrieve vì score thấp hơn. Sau khi tôi tăng chunk overlap từ 50 lên 100 token, hai paragraph này nằm trong cùng một chunk, câu trả lời đầy đủ hơn và điểm tăng lên 1.0/1.0.
+Nguyên nhân nằm ở cách chia chunk: hai điều kiện trên thuộc đoạn văn tiếp theo, bị tách thành chunk riêng với điểm retrieve thấp hơn nên không được đưa vào ngữ cảnh. Sau khi tăng overlap từ 50 lên 100 token, hai đoạn này được gộp vào chung một chunk và câu trả lời trở nên đầy đủ hơn.
+
+> Kết quả: **0.8 / 1.0 → 1.0 / 1.0**
 
 ---
 
 ## 5. Nếu có thêm thời gian, tôi sẽ làm gì?
 
-Tôi sẽ thử **hierarchical chunking** — giữ cả chunk nhỏ (câu) lẫn chunk lớn (đoạn) trong index, vì kết quả eval cho thấy một số câu hỏi cần context rộng (đoạn) trong khi một số khác chỉ cần một câu cụ thể. Retrieve theo 2 cấp có thể cải thiện cả precision lẫn recall cùng lúc.
+Tôi muốn thử nghiệm **hierarchical chunking** — duy trì đồng thời cả chunk nhỏ ở cấp câu lẫn chunk lớn ở cấp đoạn trong cùng một index. Kết quả eval cho thấy một số câu hỏi cần ngữ cảnh rộng để trả lời chính xác, trong khi một số khác chỉ cần đúng một câu cụ thể. Retrieve theo hai cấp như vậy có tiềm năng cải thiện đồng thời cả precision lẫn recall, thay vì phải đánh đổi giữa hai chỉ số này.
