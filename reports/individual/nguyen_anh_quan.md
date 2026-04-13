@@ -9,36 +9,29 @@
 
 ## 1. Tôi đã làm gì trong lab này?
 
-Với vai trò Tech Lead, tôi chịu trách nhiệm giữ nhịp cho cả 4 sprint và đảm bảo các phần code của từng thành viên kết nối được với nhau. Cụ thể, ở Sprint 1 tôi implement hàm `get_embedding()` sử dụng Sentence Transformers (`all-MiniLM-L6-v2`) để tạo vector embedding cho các chunk văn bản. Ở Sprint 2, tôi implement `call_llm()` gọi OpenAI GPT với prompt có ràng buộc "Answer only from context", đồng thời test toàn bộ `rag_answer()` với 5 câu hỏi mẫu. Sprint 4 tôi chạy demo end-to-end và fix các lỗi import, path còn sót lại. Công việc của tôi là nền tảng để Phú kết nối `build_index()` và Định tích hợp variant retrieval.
+Với vai trò Tech Lead, tôi tập trung vào việc giữ nhịp sprint và nối các phần thành pipeline chạy được từ đầu đến cuối. Ở Sprint 1, tôi phụ trách hoàn thiện `index.py`: parse metadata (`source`, `department`, `effective_date`, `access`), chunk theo section/paragraph có overlap, và build index vào ChromaDB. Tôi cũng thống nhất embedding strategy để tránh mismatch giữa lúc index và lúc query. Ở Sprint 2–3, tôi hỗ trợ hoàn thiện `rag_answer.py` theo hướng có baseline dense retrieval và variant hybrid + rerank để so sánh A/B. Ở Sprint 4, tôi tham gia chạy `eval.py`, rà lỗi import/path, và kiểm tra file output (`scorecard_baseline.md`, `scorecard_variant.md`, `ab_comparison.csv`) để đảm bảo demo end-to-end không vỡ luồng.
 
 ---
 
 ## 2. Điều tôi hiểu rõ hơn sau lab này
 
-Trước lab, tôi nghĩ embedding chỉ đơn giản là "chuyển text thành số". Sau khi implement `get_embedding()` và thấy kết quả retrieve thay đổi rõ rệt khi đổi model, tôi hiểu rằng chất lượng embedding ảnh hưởng trực tiếp đến toàn bộ pipeline — một model embedding kém sẽ khiến retrieval sai dù prompt có tốt đến đâu.
-
-Ngoài ra, tôi hiểu rõ hơn về **grounded generation**: việc thêm "Answer only from context, if not found say Không đủ dữ liệu" vào prompt không chỉ là kỹ thuật — nó là cơ chế kiểm soát hallucination. Khi test câu `ERR-403-AUTH`, model thực sự abstain thay vì bịa đặt, điều này cho thấy prompt engineering có tác động thực sự đo được.
+Bài lab giúp tôi hiểu retrieval quyết định chất lượng RAG nhiều hơn tôi từng nghĩ. Trước đây tôi thường tập trung prompt, nhưng khi chạy thực tế tôi thấy: nếu chunking chưa tốt hoặc metadata không sạch, retriever sẽ kéo sai context, và model trả lời sai dù prompt đã “grounded”. Tôi cũng hiểu rõ hơn vai trò của abstain: thay vì cố trả lời mọi câu, hệ thống cần biết nói “không đủ dữ liệu” để giảm hallucination trong các câu không có bằng chứng. Một điểm quan trọng nữa là tính nhất quán embedding giữa indexing và querying. Chỉ cần đổi model embedding mà không re-index thì kết quả search giảm rõ rệt hoặc lỗi dimension, nên vận hành thực tế phải có quy trình quản lý version cho index.
 
 ---
 
 ## 3. Điều tôi ngạc nhiên hoặc gặp khó khăn
 
-Khó khăn lớn nhất là việc kết nối embedding model với ChromaDB. Ban đầu tôi dùng `text-embedding-ada-002` của OpenAI nhưng nhóm không đủ credit, phải chuyển sang Sentence Transformers giữa chừng. Việc đổi model khiến dimension vector thay đổi (1536 → 384), dẫn đến lỗi khi query collection cũ. Phải xóa collection và build lại index từ đầu — mất khoảng 15 phút.
-
-Điều ngạc nhiên là Sentence Transformers cho kết quả retrieval gần tương đương OpenAI Embeddings trên corpus tiếng Anh ngắn này, trong khi hoàn toàn miễn phí. Đây là insight thực tế quan trọng hơn nhiều so với lý thuyết trên slide.
+Khó khăn lớn nhất là xử lý tính ổn định môi trường khi chuyển giữa local embedding và API-based embedding. Chúng tôi gặp tình huống dependency thiếu hoặc cấu hình chưa đồng bộ, khiến pipeline chạy nhưng retrieval không đúng kỳ vọng. Ngoài ra, việc tinh chỉnh ngưỡng chọn chunk và top-k tưởng đơn giản nhưng ảnh hưởng lớn đến faithfulness/completeness: top-k thấp dễ thiếu bằng chứng, top-k cao lại tăng nhiễu cho bước generation. Điều làm tôi ngạc nhiên là hybrid retrieval cho hiệu quả tốt hơn trong các câu có alias hoặc từ khóa đặc thù (ví dụ tên tài liệu cũ như “Approval Matrix”), vì dense giữ được ngữ nghĩa còn sparse giữ được exact term. Insight này hữu ích hơn nhiều so với việc chỉ tối ưu prompt.
 
 ---
 
 ## 4. Phân tích một câu hỏi trong scorecard
 
-**Câu hỏi:** "Ai phải phê duyệt để cấp quyền Level 3?"
-
-Baseline trả lời đúng tên người phê duyệt nhưng thiếu điều kiện đi kèm (phải có ticket mở trước). Điểm faithfulness đạt 0.7/1.0 vì câu trả lời không sai nhưng không đầy đủ so với context được retrieve.
-
-Lỗi nằm ở **generation**: context retrieve được đoạn đúng từ `access_control_sop.txt`, nhưng prompt không yêu cầu model trích dẫn đầy đủ điều kiện. Sau khi Định thêm rerank, chunk liên quan được đẩy lên top-1 và câu trả lời đầy đủ hơn, điểm tăng lên 0.9/1.0. Điều này cho thấy rerank giúp ích ngay cả khi retrieval đã lấy đúng document.
+Tôi chọn phân tích câu `q07`: “Approval Matrix để cấp quyền hệ thống là tài liệu nào?”. Đây là câu dễ fail với dense baseline vì người dùng dùng tên cũ, trong khi tài liệu hiện tại dùng tên “Access Control SOP”. Ở baseline, retriever có lúc không đưa đúng chunk ghi chú đổi tên, nên answer thiếu chắc chắn hoặc vòng vo. Khi chuyển sang variant hybrid + rerank, hệ thống lấy đúng chunk có câu “trước đây có tên Approval Matrix…”, nên answer bám bằng chứng hơn và citation rõ hơn. Root cause nằm ở retrieval recall (không phải generation): model không “nghĩ sai”, mà do evidence đưa vào chưa đúng. Fix hiệu quả nhất là đổi retrieval strategy, không phải chỉ thêm prompt dài hơn.
 
 ---
 
 ## 5. Nếu có thêm thời gian, tôi sẽ làm gì?
 
-Tôi sẽ thử **streaming response** cho `call_llm()` vì kết quả eval cho thấy latency trung bình ~3.2s/câu — quá chậm cho production. Ngoài ra sẽ thử cache embedding của các câu hỏi lặp lại để giảm số lần gọi model, vì test_questions.json có 3 câu hỏi có cùng entity "Level 3".
+Nếu có thêm thời gian, tôi sẽ ưu tiên ba việc. Thứ nhất, chuyển một phần scoring từ heuristic sang LLM-as-judge có schema JSON để giảm công chấm tay và dễ so sánh giữa các lần tune. Thứ hai, bổ sung logging chi tiết cho retrieval (query variants, top-k trước/sau rerank, score phân phối) để truy vết failure nhanh hơn khi demo. Thứ ba, chuẩn hóa quy trình build index theo version (embedding model + chunk config + timestamp) để tránh lỗi “query nhầm index cũ”. Mục tiêu của ba việc này là làm pipeline bớt phụ thuộc may mắn khi chạy một lần, và tăng khả năng lặp lại kết quả khi nhóm cần trình bày A/B comparison trước lớp.
+
