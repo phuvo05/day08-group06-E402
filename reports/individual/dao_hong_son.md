@@ -12,17 +12,17 @@
 
 ## 1. Đóng góp cụ thể của tôi
 
-Tôi nhận vai Documentation Owner nên không trực tiếp viết hàm retrieve hay rerank, mà bám theo bạn Tech Lead và Retrieval Owner để chuyển log chạy thật thành tài liệu. Sprint 1, sau khi `index.py` chạy xong, tôi soi output để ghi lại con số chunk thật của từng file vào `docs/architecture.md`: `policy_refund_v4.txt` 6, `sla_p1_2026.txt` 5, `access_control_sop.txt` 7, `it_helpdesk_faq.txt` 6, `hr_leave_policy.txt` 5, tổng 29. Tôi cũng liệt kê đầy đủ 5 metadata field (`source`, `section`, `effective_date`, `department`, `access`) — vượt yêu cầu 3 field tối thiểu của README.
+Tôi làm Documentation Owner nên không trực tiếp viết hàm retrieve hay rerank, mà bám theo bạn Tech Lead và Retrieval Owner để chuyển log chạy thật thành tài liệu. Sprint 1, sau khi `index.py` chạy xong, tôi kiểm tra output và đề xuất với coder ở trên lớp con số chunk của từng file `docs/architecture.md`: `policy_refund_v4.txt` 6, `sla_p1_2026.txt` 5, `access_control_sop.txt` 7, `it_helpdesk_faq.txt` 6, `hr_leave_policy.txt` 5, tổng 29. Tôi cũng liệt kê đầy đủ 5 metadata field (`source`, `section`, `effective_date`, `department`, `access`) — vượt yêu cầu 3 field tối thiểu của README.
 
-Sprint 2–3, tôi đối chiếu `BASELINE_CONFIG` và `VARIANT_CONFIG` trong `eval.py` để chốt lại trong `tuning-log.md`: baseline = `dense, top_k_search=10, top_k_select=3, rerank=False`, variant = `hybrid + rerank=True`. Đây là chỗ đầu tiên tôi suýt viết sai vì có lúc tài liệu chỉ thấy phần rerank, dễ tưởng nhóm chỉ đổi một biến.
+Sprint 2–3, tôi đối chiếu `BASELINE_CONFIG` và `VARIANT_CONFIG` trong `eval.py` để chốt lại với team ở file và sửa ngay trước khi commit ở `tuning-log.md`: baseline = `dense, top_k_search=10, top_k_select=3, rerank=False`, variant = `hybrid + rerank=True`. Đây là chỗ đầu tiên tôi suýt viết sai vì có lúc tài liệu chỉ thấy phần rerank, dễ tưởng nhóm chỉ đổi một biến.
 
-Sprint 4, tôi viết script `run_grading.py` theo mẫu trong SCORING.md để chạy `docs/grading_questions.json` qua pipeline variant, ghi ra `logs/grading_run.json` đúng schema bắt buộc (id, question, answer, sources, chunks_retrieved, retrieval_mode, timestamp), thêm `use_rerank` theo gợi ý FAQ. Sau đó tôi tự chấm 10 câu theo `grading_criteria` và đối chiếu với expected_answer để nộp.
+Sprint 4, tôi viết script `run_grading.py` theo mẫu trong SCORING.md để chạy `docs/grading_questions_new.json` qua pipeline variant, ghi ra `logs/grading_run_new.json` đúng schema bắt buộc (id, question, answer, sources, chunks_retrieved, retrieval_mode, timestamp), thêm `use_rerank` theo gợi ý FAQ. Sau đó tôi tự chấm 10 câu theo `grading_criteria` và đối chiếu với expected_answer để nộp.
 
 ---
 
 ## 2. Phân tích một câu grading: gq05 (Contractor + Admin Access)
 
-Tôi chọn gq05 vì đây là câu pipeline **fail nặng nhất** (0/10 theo rubric). Câu hỏi: *“Contractor có được cấp quyền Admin Access không? Cần bao nhiêu ngày và yêu cầu đặc biệt gì?”*
+Chọn gq05 vì đây là câu pipeline **fail nặng nhất** (0/10 theo rubric). Câu hỏi: *“Contractor có được cấp quyền Admin Access không? Cần bao nhiêu ngày và yêu cầu đặc biệt gì?”*
 
 **Pipeline trả lời:** “Có, contractor có thể được cấp Admin Access tạm thời, tối đa 24 giờ sau khi Tech Lead phê duyệt… ghi log Security Audit”.
 
@@ -38,7 +38,7 @@ Hệ quả: model thấy context chỉ nói về quy trình emergency 24h nên t
 
 ## 3. Rút kinh nghiệm thực tế
 
-Bất ngờ nhất với tôi là **rerank không phải bao giờ cũng tốt**. Trước lab tôi đọc tài liệu thấy “cross-encoder cải thiện ranking” là mặc nhiên đúng. Nhưng khi đối chiếu `scorecard_baseline.md` và `scorecard_variant.md`: faithfulness tăng (4.90 → 5.00) và recall không đổi, nhưng **relevance giảm 4.40 → 4.20** và **completeness giảm 3.90 → 3.80**. q07 trong test_questions thậm chí từ 5/5/5/2 (baseline) tụt xuống 5/1/5/1 (variant). Trade-off này không hiện ra nếu chỉ nhìn faithfulness.
+Bất ngờ là **rerank không phải bao giờ cũng tốt**. Trước lab tôi đọc tài liệu thấy “cross-encoder cải thiện ranking” là mặc nhiên đúng. Nhưng khi đối chiếu `scorecard_baseline.md` và `scorecard_variant.md`: faithfulness tăng (4.90 → 5.00) và recall không đổi, nhưng **relevance giảm 4.40 → 4.20** và **completeness giảm 3.90 → 3.80**. q07 trong test_questions thậm chí từ 5/5/5/2 (baseline) tụt xuống 5/1/5/1 (variant). Trade-off này không hiện ra nếu chỉ nhìn faithfulness.
 
 Khó khăn lớn thứ hai là **timestamp bonus**. SCORING.md cho +1 nếu `grading_run.json` có timestamp trong khoảng 17:00–18:00. Tôi chạy lúc 16:23–16:24 nên không đạt — đây là lỗi do tôi không đọc kỹ phần Bonus của SCORING trước khi bấm chạy. Nếu lùi lại, tôi sẽ chốt thời gian chạy thật cùng cả nhóm.
 
